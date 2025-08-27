@@ -20,6 +20,8 @@ interface Transaction {
   amount: number
   description: string
   type: "loan" | "payment"
+  paymentMethod: "online" | "cash"
+  proofImage?: string
   createdAt: string
   updatedAt: string
 }
@@ -42,7 +44,14 @@ interface TransactionsContextType {
   totalReceivable: number
   totalPayable: number
   netBalance: number
-  addTransaction: (friendId: string, amount: number, description: string, type: "loan" | "payment") => Promise<void>
+  addTransaction: (
+    friendId: string,
+    amount: number,
+    description: string,
+    type: "loan" | "payment",
+    paymentMethod: "online" | "cash",
+    proofImage?: string,
+  ) => Promise<void>
   settleBalance: (friendId: string) => Promise<void>
   getTransactionsWithFriend: (friendId: string) => Transaction[]
   loading: boolean
@@ -133,7 +142,14 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const addTransaction = async (friendId: string, amount: number, description: string, type: "loan" | "payment") => {
+  const addTransaction = async (
+    friendId: string,
+    amount: number,
+    description: string,
+    type: "loan" | "payment",
+    paymentMethod: "online" | "cash",
+    proofImage?: string,
+  ) => {
     if (!user) return
 
     setLoading(true)
@@ -150,6 +166,8 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
           amount,
           description,
           type,
+          paymentMethod,
+          proofImage,
         }),
       })
 
@@ -160,7 +178,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
         addNotification({
           type: "transaction",
           title: `${type === "loan" ? "Loan Added" : "Payment Recorded"}`,
-          message: `₹${amount} ${type === "loan" ? "lent to" : "received from"} ${friend?.name || "friend"}`,
+          message: `₹${amount} ${type === "loan" ? "lent to" : "received from"} ${friend?.name || "friend"} via ${paymentMethod}`,
         })
 
         await loadTransactions()

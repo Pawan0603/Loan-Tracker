@@ -10,6 +10,7 @@ import { AddTransaction } from "@/components/add-transaction"
 import { TransactionHistory } from "@/components/transaction-history"
 import { NotificationsPanel } from "@/components/notifications-panel"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { PeopleOverview } from "@/components/people-overview"
 import { Home, Users, History, Plus } from "lucide-react"
 
 export function Dashboard() {
@@ -91,6 +92,8 @@ export function Dashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            <PeopleOverview />
 
             <Card>
               <CardHeader>

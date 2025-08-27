@@ -7,6 +7,8 @@ export interface ITransaction extends Document {
   amount: number
   description: string
   type: "loan" | "payment"
+  paymentMethod: "online" | "cash"
+  proofImage?: string
   status: "pending" | "completed" | "cancelled"
   createdAt: Date
   updatedAt: Date
@@ -44,6 +46,24 @@ const TransactionSchema = new Schema<ITransaction>(
       enum: ["loan", "payment"],
       required: [true, "Transaction type is required"],
     },
+    paymentMethod: {
+      type: String,
+      enum: ["online", "cash"],
+      required: [true, "Payment method is required"],
+      default: "cash",
+    },
+    proofImage: {
+      type: String,
+      required: false,
+      validate: {
+        validator: (value: string) => {
+          if (!value) return true // Optional field
+          // Basic URL validation for image
+          return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(value)
+        },
+        message: "Proof image must be a valid image URL",
+      },
+    },
     status: {
       type: String,
       enum: ["pending", "completed", "cancelled"],
@@ -60,6 +80,7 @@ TransactionSchema.index({ from: 1, createdAt: -1 })
 TransactionSchema.index({ to: 1, createdAt: -1 })
 TransactionSchema.index({ from: 1, to: 1, createdAt: -1 })
 TransactionSchema.index({ type: 1, status: 1 })
+TransactionSchema.index({ paymentMethod: 1 })
 
 // Prevent users from creating transactions with themselves
 TransactionSchema.pre("save", function (next) {

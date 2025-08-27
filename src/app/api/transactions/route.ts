@@ -62,6 +62,8 @@ export async function GET(request: NextRequest) {
       amount: transaction.amount,
       type: transaction.type,
       description: transaction.description,
+      paymentMethod: transaction.paymentMethod,
+      proofImage: transaction.proofImage,
       status: transaction.status,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
@@ -86,15 +88,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
-    const { friendId, amount, type, description } = await request.json()
+    const { friendId, amount, type, description, paymentMethod, proofImage } = await request.json()
 
     // Validation
-    if (!friendId || !amount || !type || !description) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 })
+    if (!friendId || !amount || !type || !description || !paymentMethod) {
+      return NextResponse.json(
+        { error: "Friend, amount, type, description, and payment method are required" },
+        { status: 400 },
+      )
     }
 
     if (!["loan", "payment"].includes(type)) {
       return NextResponse.json({ error: "Type must be 'loan' or 'payment'" }, { status: 400 })
+    }
+
+    if (!["online", "cash"].includes(paymentMethod)) {
+      return NextResponse.json({ error: "Payment method must be 'online' or 'cash'" }, { status: 400 })
     }
 
     if (amount <= 0) {
@@ -103,6 +112,13 @@ export async function POST(request: NextRequest) {
 
     if (friendId === currentUser._id.toString()) {
       return NextResponse.json({ error: "Cannot create transaction with yourself" }, { status: 400 })
+    }
+
+    if (proofImage && typeof proofImage === "string" && proofImage.trim()) {
+      const imageUrlPattern = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i
+      if (!imageUrlPattern.test(proofImage.trim())) {
+        return NextResponse.json({ error: "Proof image must be a valid image URL" }, { status: 400 })
+      }
     }
 
     await connectDB()
@@ -132,6 +148,8 @@ export async function POST(request: NextRequest) {
       amount: Number.parseFloat(amount.toString()),
       type: type as "loan" | "payment",
       description: description.trim(),
+      paymentMethod: paymentMethod as "online" | "cash",
+      proofImage: proofImage && typeof proofImage === "string" ? proofImage.trim() : undefined,
       status: "completed",
     })
 
@@ -155,6 +173,8 @@ export async function POST(request: NextRequest) {
         amount: newTransaction.amount,
         type: newTransaction.type,
         description: newTransaction.description,
+        paymentMethod: newTransaction.paymentMethod,
+        proofImage: newTransaction.proofImage,
         status: newTransaction.status,
         createdAt: newTransaction.createdAt,
         updatedAt: newTransaction.updatedAt,
