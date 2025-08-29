@@ -244,8 +244,8 @@ export function FriendsSection() {
               {friendRequests.map((request) => (
                 <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
-                    <p className="font-medium">{request.fromUserName}</p>
-                    <p className="text-sm text-gray-500">{request.fromUserEmail}</p>
+                    <p className="font-medium">{request.fromUser?.name}</p>
+                    <p className="text-sm text-gray-500">{request.fromUser?.email}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button

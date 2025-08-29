@@ -62,7 +62,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     // Periodic sync every 30 seconds
     const syncInterval = setInterval(() => {
       syncData()
-    }, 30000)
+    }, 120000)
 
     return () => clearInterval(syncInterval)
   }

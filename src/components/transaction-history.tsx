@@ -6,10 +6,15 @@ import { Button } from "@/components/ui/button"
 import { useTransactions } from "@/hooks/use-transactions"
 import { useAuth } from "@/hooks/use-auth"
 import { History, ArrowUpRight, ArrowDownLeft, Handshake } from "lucide-react"
+import { useEffect } from "react"
 
-export function TransactionHistory() {
+export function TransactionHistory({friendId}: any) {
   const { transactions, balances, settleBalance } = useTransactions()
   const { user } = useAuth()
+
+  useEffect(() => {
+    console.log("balances", balances)
+  }, [balances]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
@@ -40,12 +45,12 @@ export function TransactionHistory() {
   const getTransactionText = (transaction: any, isUserSender: boolean) => {
     if (transaction.type === "loan") {
       return isUserSender
-        ? `You lent ₹${transaction.amount} to ${transaction.toUserName}`
-        : `You borrowed ₹${transaction.amount} from ${transaction.fromUserName}`
+        ? `You lent ₹${transaction.amount} to ${transaction.toUser.name}`
+        : `You borrowed ₹${transaction.amount} from ${transaction.fromUser.name}`
     } else {
       return isUserSender
-        ? `You paid ₹${transaction.amount} to ${transaction.toUserName}`
-        : `You received ₹${transaction.amount} from ${transaction.fromUserName}`
+        ? `You paid ₹${transaction.amount} to ${transaction.toUser.name}`
+        : `You received ₹${transaction.amount} from ${transaction.fromUser.name}`
     }
   }
 
@@ -64,24 +69,28 @@ export function TransactionHistory() {
           <CardContent>
             <div className="space-y-3">
               {balances
-                .filter((balance) => Math.abs(balance.amount) > 0.01)
+                .filter(
+                  (balance) =>
+                    Math.abs(balance.balance) > 0.01 &&
+                    (balance.friend.id === friendId)
+                )
                 .map((balance) => (
-                  <div key={balance.friendId} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={balance.friend.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
-                      <p className="font-medium">{balance.friendName}</p>
+                      <p className="font-medium">{balance.friend.name}</p>
                       <p className="text-sm text-gray-500">
-                        {balance.amount > 0
-                          ? `Owes you ₹${balance.amount.toFixed(2)}`
-                          : `You owe ₹${Math.abs(balance.amount).toFixed(2)}`}
+                        {balance.balance > 0
+                          ? `Owes you ₹${balance.balance.toFixed(2)}`
+                          : `You owe ₹${Math.abs(balance.balance).toFixed(2)}`}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={balance.amount > 0 ? "default" : "destructive"}>
-                        {balance.amount > 0
-                          ? `+₹${balance.amount.toFixed(2)}`
-                          : `-₹${Math.abs(balance.amount).toFixed(2)}`}
+                      <Badge variant={balance.balance > 0 ? "default" : "destructive"}>
+                        {balance.balance > 0
+                          ? `+₹${balance.balance.toFixed(2)}`
+                          : `-₹${Math.abs(balance.balance).toFixed(2)}`}
                       </Badge>
-                      <Button size="sm" variant="outline" onClick={() => settleBalance(balance.friendId)}>
+                      <Button size="sm" variant="outline" onClick={() => settleBalance(balance.friend.id)}>
                         Settle
                       </Button>
                     </div>
@@ -107,23 +116,28 @@ export function TransactionHistory() {
           ) : (
             <div className="space-y-3">
               {transactions
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .map((transaction) => {
-                  const isUserSender = transaction.fromUserId === user?.id
-                  return (
-                    <div key={transaction.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                      <div className="mt-1">{getTransactionIcon(transaction, isUserSender)}</div>
-                      <div className="flex-1">
-                        <p className="font-medium">{getTransactionText(transaction, isUserSender)}</p>
-                        <p className="text-sm text-gray-600 mt-1">{transaction.description}</p>
-                        <p className="text-xs text-gray-500 mt-1">{formatDate(transaction.createdAt)}</p>
-                      </div>
-                      <Badge variant={transaction.type === "loan" ? "default" : "secondary"}>
-                        {transaction.type === "loan" ? "Loan" : "Payment"}
-                      </Badge>
-                    </div>
-                  )
-                })}
+              .filter(
+                (transaction) =>
+                transaction.fromUser.id === friendId ||
+                transaction.toUser.id === friendId
+              )
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .map((transaction) => {
+                const isUserSender = transaction.fromUser.id === user?.id
+                return (
+                <div key={transaction.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                  <div className="mt-1">{getTransactionIcon(transaction, isUserSender)}</div>
+                  <div className="flex-1">
+                  <p className="font-medium">{getTransactionText(transaction, isUserSender)}</p>
+                  <p className="text-sm text-gray-600 mt-1">{transaction.description}</p>
+                  <p className="text-xs text-gray-500 mt-1">{formatDate(transaction.createdAt)}</p>
+                  </div>
+                  <Badge variant={transaction.type === "loan" ? "default" : "secondary"}>
+                  {transaction.type === "loan" ? "Loan" : "Payment"}
+                  </Badge>
+                </div>
+                )
+              })}
             </div>
           )}
         </CardContent>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -24,10 +24,10 @@ export function PeopleOverview() {
 
   // Calculate balances for each person
   const peopleBalances: PersonBalance[] = transactions.reduce((acc: PersonBalance[], transaction) => {
-    const isUserSender = transaction.fromUserId === user?.id
-    const otherPersonId = isUserSender ? transaction.toUserId : transaction.fromUserId
-    const otherPersonName = isUserSender ? transaction.toUserName : transaction.fromUserName
-    const otherPersonEmail = isUserSender ? transaction.toUserEmail : transaction.fromUserEmail
+    const isUserSender = transaction.fromUser.id === user?.id
+    const otherPersonId = isUserSender ? transaction.toUser.id : transaction.fromUser.id
+    const otherPersonName = isUserSender ? transaction.toUser.name : transaction.fromUser.name
+    const otherPersonEmail = isUserSender ? transaction.toUser.email : transaction.fromUser.email
 
     // Find existing person or create new one
     let person = acc.find((p) => p.id === otherPersonId)
@@ -62,6 +62,10 @@ export function PeopleOverview() {
 
   // Sort by absolute balance amount (highest first)
   peopleBalances.sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
+
+  useEffect(() => {
+    console.log("selectedPerson", selectedPerson)
+  }, [selectedPerson]);
 
   if (selectedPerson) {
     return (

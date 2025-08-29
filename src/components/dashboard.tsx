@@ -12,6 +12,7 @@ import { NotificationsPanel } from "@/components/notifications-panel"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PeopleOverview } from "@/components/people-overview"
 import { Home, Users, History, Plus } from "lucide-react"
+import { useEffect } from "react"
 
 export function Dashboard() {
   const { user, logout } = useAuth()
@@ -111,18 +112,18 @@ export function Dashboard() {
                       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                       .slice(0, 5)
                       .map((transaction) => {
-                        const isUserSender = transaction.fromUserId === user?.id
+                        const isUserSender = transaction.fromUser.id === user?.id
                         return (
                           <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
                             <div>
                               <p className="font-medium">
                                 {transaction.type === "loan"
                                   ? isUserSender
-                                    ? `Lent to ${transaction.toUserName}`
-                                    : `Borrowed from ${transaction.fromUserName}`
+                                    ? `Lent to ${transaction.toUser.name}`
+                                    : `Borrowed from ${transaction.fromUser.name}`
                                   : isUserSender
-                                    ? `Paid to ${transaction.toUserName}`
-                                    : `Received from ${transaction.fromUserName}`}
+                                    ? `Paid to ${transaction.toUser.name}`
+                                    : `Received from ${transaction.fromUser.name}`}
                               </p>
                               <p className="text-sm text-muted-foreground">{transaction.description}</p>
                             </div>
